@@ -1,0 +1,93 @@
+#!/bin/bash
+### BEGIN INIT INFO
+# Provides:          APPLICATION
+# Required-Start:    $all
+# Required-Stop:     $network $local_fs $syslog
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: Start the APPLICATION unicorns at boot
+# Description:       Enable APPLICATION at boot time.
+### END INIT INFO
+# 
+# Use this as a basis for your own Unicorn init script.
+# Change APPLICATION to match your app.
+# Make sure that all paths are correct.
+
+set -u
+set -e
+
+# Change these to match your app:
+APP_NAME=<%= @node[:application][:application_name] %>
+APP_USER=<%= @node[:application][:application_name] %>
+APP_ROOT=<%= @node[:application][:application_root] %>
+PID="/tmp/unicorn.pid"
+RAILS_ENV=<%= @node[:application][:rails_env] %>
+CURRENT_USER=$(whoami)
+SUDO_CMD=""
+
+if [ "$CURRENT_USER" = "root" ] ; then
+  SUDO_CMD="sudo -u $APP_USER "
+elif [ "$CURRENT_USER" != "$APP_USER" ] ; then
+  echo "Please run as user $APP_USER (or root)"
+  exit 1
+fi
+
+UNICORN_CMD="cd $APP_ROOT && RAILS_ENV=$RAILS_ENV bundle exec unicorn -D -E $RAILS_ENV -c $APP_ROOT/config/unicorn.vagrant.rb"
+
+old_pid="$PID.oldbin"
+
+cd $APP_ROOT || exit 1
+
+sig () {
+  test -s "$PID" && kill -$1 $(cat $PID)
+}
+
+oldsig () {
+  test -s $old_pid && kill -$1 $(cat $old_pid)
+}
+
+workersig () {
+  workerpid="/$APP_ROOT/shared/pids/unicorn.$2.pid"
+  
+  test -s "$workerpid" && kill -$1 `cat $workerpid`
+}
+
+case ${1-help} in
+start)
+  sig 0 && echo >&2 "Already running" && exit 0
+  echo $SUDO_CMD bash -l -c "$UNICORN_CMD"
+  $SUDO_CMD bash -l -c "$UNICORN_CMD"
+  ;;
+stop)
+  sig QUIT && exit 0
+  echo >&2 "Not running"
+  ;;
+force-stop)
+  sig TERM && exit 0
+  echo >&2 "Not running"
+  ;;
+restart|reload)
+  sig HUP && echo reloaded OK && exit 0
+  echo >&2 "Couldn't reload, starting '$UNICORN_CMD' instead"
+  echo $SUDO_CMD bash -l -c "$UNICORN_CMD"
+  $SUDO_CMD bash -l -c "$UNICORN_CMD"
+  ;;
+upgrade)
+  sig USR2 && exit 0
+  echo >&2 "Couldn't upgrade, starting '$UNICORN_CMD' instead"
+  echo $SUDO_CMD bash -l -c "$UNICORN_CMD"
+  $SUDO_CMD bash -l -c "$UNICORN_CMD"
+  ;;
+kill_worker)
+  workersig QUIT $2 && exit 0
+  echo >&2 "Worker not running"
+  ;;
+rotate)
+  sig USR1 && echo rotated logs OK && exit 0
+  echo >&2 "Couldn't rotate logs" && exit 1
+  ;;
+*)
+  echo >&2 "Usage: $0 <start|stop|restart|upgrade|rotate|force-stop>"
+  exit 1
+  ;;
+esac
