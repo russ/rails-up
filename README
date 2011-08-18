@@ -1,1 +1,3 @@
 This is just a starting point.
+
+Copy the Vagrant file and chef folder into your rails app and run vagrant up.
