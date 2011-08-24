@@ -1,0 +1,14 @@
+#!/usr/bin/env ruby
+
+require "rubygems"
+require "fileutils"
+
+puts "Created: Vagrantfile"
+FileUtils.cp(
+  File.join(File.dirname(__FILE__), "../templates/Vagrantfile"),
+  File.join(FileUtils.pwd, "Vagrantfile"))
+
+puts "Created: chef/"
+FileUtils.cp_r(
+  File.join(File.dirname(__FILE__), "../templates/chef"),
+  File.join(FileUtils.pwd, "chef"))
