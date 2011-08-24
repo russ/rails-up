@@ -17,28 +17,14 @@
 # limitations under the License.
 #
 
-package "varnish"
-
-template "#{node[:varnish][:dir]}default.vcl" do
-  source "default.vcl.erb"
-  owner "root"
-  group "root"
-  mode 0644
-end
-
-template "#{node[:varnish][:default]}" do
-  source "ubuntu-default.erb"
-  owner "root"
-  group "root"
-  mode 0644
-end
-
-service "varnish" do
-  supports :restart => true, :reload => true
-  action [ :enable, :start ]
-end
-
-service "varnishlog" do
-  supports :restart => true, :reload => true
-  action [ :enable, :start ]
+bash "Installing latest Varnish" do
+  user "root"
+  code <<-EOH
+    curl http://repo.varnish-cache.org/debian/GPG-key.txt | apt-key add -
+    echo "deb http://repo.varnish-cache.org/ubuntu/ $(lsb_release -s -c) varnish-2.1" >> /etc/
+    apt-get update
+    apt-get install varnish
+    /etc/init.d/varnish stop
+  EOH
+  not_if "apt-cache pkgnames | grep varnish | grep -v grep"
 end
