@@ -1,4 +1,10 @@
-Install Virtual Box (http://www.virtualbox.org/wiki/Downloads)
+= rails-up
+
+= Install Virtual Box
+
+Instructions for that can be found at: http://www.virtualbox.org/wiki/Downloads
+
+= Put rails-up in your application
 
 Copy the Vagrant file and chef folder into your rails app and run vagrant up.
 
