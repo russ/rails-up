@@ -1,3 +1,9 @@
-This is just a starting point.
+Install Virtual Box (http://www.virtualbox.org/wiki/Downloads)
 
 Copy the Vagrant file and chef folder into your rails app and run vagrant up.
+
+Then run:
+
+  gem install vagrant
+  vagrant box add base http://files.vagrantup.com/lucid32.box
+  vagrant up
