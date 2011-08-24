@@ -5,8 +5,9 @@ template "/etc/init.d/application" do
 end
 
 bash "Bundling the application" do
+  user "application"
   cwd "/vagrant"
-  command "whoami && rvm use ruby-1.9.2 && bundle"
+  code "rvm exec bundle --deployment"
 end
 
 service "application" do
