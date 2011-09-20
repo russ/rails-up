@@ -18,16 +18,31 @@ server {
   error_log <%= node[:nginx][:log_dir] %>/application.error.log;
 
   location / {
-    client_max_body_size 1000M;
-    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-    proxy_set_header Host $http_host;
-    proxy_redirect off;
     if (!-f $request_filename) {
       proxy_pass http://application;
     }
+
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header Host            $http_host;
+    proxy_set_header X-Real-IP       $remote_addr;
+    proxy_redirect                   off;
+
+    proxy_connect_timeout            90;
+    proxy_send_timeout               90;
+    proxy_read_timeout               90;
+
+    proxy_buffer_size                4k;
+    proxy_buffers                    4 32k;
+    proxy_busy_buffers_size          64k;
+    proxy_temp_file_write_size       64k;
+
+    client_max_body_size             100M;
+    client_boyd_buffer_size          128k;
   }
 
-  location /themes/ {
-    alias /vagrant/themes/;
+  location ~ ^/(images|javascripts|stylesheets|system)/  {
+    root /home/deployer/apps/my_site/current/public;
+    expires max;
+    break;
   }
 }

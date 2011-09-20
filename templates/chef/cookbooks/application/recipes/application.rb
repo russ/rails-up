@@ -1,3 +1,16 @@
+template "/home/application/.rvmrc" do
+  source "rvmrc"
+  mode 0755
+  backup true
+end
+
+template "/home/application/.gemrc" do
+  user "application"
+  source "gemrc"
+  mode 0755
+  backup true
+end
+
 template "/etc/init.d/application" do
   source "application.init.erb"
   mode 0755
